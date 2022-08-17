@@ -1,0 +1,113 @@
+
+```{r Installing and loading required packages}
+install.packages("tidyverse")
+library(tidyverse)
+install.packages("ggplot2")
+library(ggplot2)
+install.packages("janitor")
+library(janitor)
+install.packages("skimr")
+library(skimr)
+install.packages('dplyr')
+library(dplyr)
+```
+```{r Setting current working directory}
+setwd("C:\\Users\\sreelu\\Documents\\Bela beat case study\\Google-DA-Analysis")
+```
+```{r Ensure we're in the right working directory}
+getwd()
+```
+```{r Reading the csv files}
+daily_activity_data <- read_csv("dailyActivity_merged.csv")
+head(daily_activity_data)
+daily_calories_data <- read_csv("dailyCalories_merged.csv")
+head(daily_calories_data)
+daily_intensities_data <- read_csv("dailyIntensities_merged.csv")
+head(daily_intensities_data)
+daily_steps_data <- read_csv("dailySteps_merged.csv")
+head(daily_steps_data)
+heart_rate_data <- read_csv("heartrate_seconds_merged.csv")
+head(heart_rate_data)
+sleep_data <- read_csv("sleepDay_merged.csv")
+head(sleep_data)
+weight_log_data <- read_csv("weightLogInfo_merged.csv")
+head(weight_log_data)
+```
+```{r Package to run SQL syntax on R data frames}
+install.packages("sqldf")
+library(sqldf)
+```
+```{r Selecting only required columns for calories}
+daily_activity_data_calories <- daily_activity_data %>% 
+  select(Id, ActivityDate, Calories)
+
+head(daily_activity_data_calories)
+```
+```{r Checking if all data contained in calories data frame is present in daily activity data frame}
+common_calories_data <- sqldf("SELECT * FROM daily_activity_data_calories INTERSECT SELECT * FROM daily_calories_data")
+head(common_calories_data)
+nrow(common_calories_data)
+nrow(daily_activity_data_calories)
+```
+```{r Selecting only required columns for intensities}
+daily_activity_data_intensities <- daily_activity_data %>% 
+  select(Id, ActivityDate, SedentaryMinutes, LightlyActiveMinutes, FairlyActiveMinutes, VeryActiveMinutes, SedentaryActiveDistance, LightActiveDistance, ModeratelyActiveDistance, VeryActiveDistance)
+
+head(daily_activity_data_intensities)
+```
+```{r Checking if all data contained in intensities data frame is present in daily activity data frame}
+common_intensities_data <- sqldf("SELECT * FROM daily_activity_data_intensities INTERSECT SELECT * FROM daily_intensities_data")
+nrow(common_intensities_data)==nrow(daily_activity_data_intensities)
+```
+```{r Selecting only required columns for intensities}
+daily_activity_data_steps <- daily_activity_data %>% 
+  select(Id, ActivityDate, TotalSteps)
+
+head(daily_activity_data_steps)
+```
+```{r Checking if all data contained in intensities data frame is present in daily activity data frame}
+common_steps_data <- sqldf("SELECT * FROM daily_activity_data_steps INTERSECT SELECT * FROM daily_steps_data")
+nrow(common_steps_data)==nrow(daily_activity_data_steps)
+head(common_steps_data)
+```
+```{r Getting the summary from our data}
+daily_activity_data %>% 
+  select(TotalSteps, TotalDistance, Calories, SedentaryMinutes, LightlyActiveMinutes, FairlyActiveMinutes, VeryActiveMinutes) %>% 
+  summary()
+
+min_date <- min(daily_activity_data$ActivityDate) #Finding start date
+max_date <- max(daily_activity_data$ActivityDate) #Finding last date
+num_of_people <- n_distinct(daily_activity_data$Id) #Finding total number of people involved
+```
+```{r 
+From the summary a few observations can be made:
+* An average person takes 7638 steps a day which is lesser than the recommended 10,000 steps recommended by WHO
+* An average person burns around 2304 calories per day, which is higher than the ideal number of 2200 calories for an adult female. However, in order to lose atleast one pound, about 3500 calories burnout is recommended in a day
+* The number of very active minutes per day recommended by CDC is about 30 minutes, however, the average person spends about 21.16 minutes of vigorous activity}
+```
+```{r Plotting the data - Steps taken VS. Calories burnt}
+ggplot(data=daily_activity_data, aes(x=TotalSteps, y=Calories)) + geom_point(colour='blue', size=2) + geom_smooth(method = lm, colour='black', size=1.5) + labs(title="Relationship between Total Steps and Calories burnt", caption=paste0("Data from: ", min_date, " to ", max_date, " of ", num_of_people, " people"))
+```
+```{r The above plot shows that more the steps taken, a user is likely to burn more calories}```
+```{r Plotting the data - Very active minutes VS. Calories burnt}
+ggplot(data=daily_activity_data, aes(x=VeryActiveMinutes, y=Calories)) + geom_point(colour='blue', size=2) + geom_smooth(method = lm, colour='black', size=1.5) + labs(title="Relationship between Very active minutes and Calories burnt", caption=paste0("Data from: ", min_date, " to ", max_date, " of ", num_of_people, " people"))
+```
+```{r The above plot shows a positive relation between very active minutes and the calories burnt. On further analysis, it is found that the users mostly do vigorous workout between 0 and 50 minutes in a day and most calories burnt between 1000 calories and 3500 calories }```
+```{r Plotting the data - Sedentary minutes VS. Calories burnt}
+ggplot(data=daily_activity_data, aes(x=SedentaryMinutes, y=Calories)) + geom_point(colour='blue', size=2) + geom_smooth(method = lm, colour='black', size=1.5) + labs(title="Relationship between Sedentary minutes and Calories burnt", caption=paste0("Data from: ", min_date, " to ", max_date, " of ", num_of_people, " people"))
+```
+```{r The above plot shows a somewhat negative relation between sedantary minutes and calories burnt, which further proves that the more the anaerobic minutes, lesser the calories burnt}```
+```{r Plotting the data - Total distance VS. Calories burnt}
+ggplot(data=daily_activity_data, aes(x=TotalDistance, y=Calories)) + geom_point(colour='blue', size=2) + geom_smooth(method = lm, colour='black', size=1.5) + labs(title="Relationship between Total distance and Calories burnt", caption=paste0("Data from: ", min_date, " to ", max_date, " of ", num_of_people, " people"))
+```
+```{r The above plot tells that more the distance travelled, higher the calories burnt. Most people seem to be walking/running/jogging for upto 10 km in a day and burning between 1000 calories to 3000 calories per day}
+
+
+
+
+---
+title: Bella-beat-data-case-study.R
+author: sreelu
+date: '2022-08-17'
+
+---
